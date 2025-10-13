@@ -70,3 +70,14 @@ def pose_post_actions():
         [InlineKeyboardButton(text="🔁 Яна расм юбориш", callback_data="pose_again")],
         [InlineKeyboardButton(text="🔙 Орқага", callback_data="back_fitness_menu")],
     ])
+
+
+# Monetization CTA
+def monet_cta_keyboard(bot_username: str = ""):
+    buttons = []
+    # Placeholder premium link/button (could be to payment or instructions)
+    buttons.append([InlineKeyboardButton(text="⭐ Premium обуна", url="https://t.me/" + (bot_username or ""))])
+    # Suggest adding to a new group
+    if bot_username:
+        buttons.append([InlineKeyboardButton(text="➕ Гуруҳга қўшиш", url=f"https://t.me/{bot_username}?startgroup=true")])
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
