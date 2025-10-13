@@ -24,7 +24,9 @@ async def photo_menu(message: Message):
 async def calories_entry(message: Message, state):
     await state.set_state(PhotoServices.waiting_image)
     await state.update_data(mode="calories")
-    await message.answer("Илтимос, таом расмини юборинг.")
+    await message.answer(
+        "Жуда яхши! Таомнинг калориясини аниқлаш учун унинг аниқ ва сифатли туширилган расмини юборинг.\n"
+        "Илтимос, иложи борича битта порция расмини юборинг.")
 
 
 @router.message(PhotoServices.waiting_image, F.photo)
@@ -35,11 +37,16 @@ async def handle_waiting_image(message: Message, state):
     data_url = to_data_url(image_bytes)
 
     if mode == "calories":
+        await message.answer("⏳ Расм қабул қилинди. Таҳлил қилинмоқда, илтимос, бироз кутинг...")
         result = analyze_calories(data_url)
-        await message.answer(result, reply_markup=calories_post_actions())
+        # Enrich with CTA lines per spec
+        extra = ("\nБугунги калория меъёрингизни билиш учун \"Фитнес-камера\" бўлимидан фойдаланинг.\n"
+                 "Кейинги ҳаракатни танланг:")
+        await message.answer(result + "\n" + extra, reply_markup=calories_post_actions())
         return
 
     if mode == "recipe":
+        await message.answer("⏳ Таҳлил қилинмоқда... Сиз учун энг яхши рецептни қидирмоқдаман.")
         result = identify_recipe(data_url)
         await message.answer(result, reply_markup=recipe_post_actions())
         return
@@ -51,6 +58,7 @@ async def handle_waiting_image(message: Message, state):
         return
 
     if mode == "product":
+        await message.answer("⏳ Таҳлил қилинмоқда... Объектни аниқлаяпман.")
         result = identify_product(data_url)
         await message.answer(result, reply_markup=product_post_actions())
         return

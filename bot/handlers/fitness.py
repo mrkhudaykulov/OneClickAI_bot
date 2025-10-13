@@ -4,9 +4,10 @@ from aiogram.filters import Text
 
 from ..keyboards import fitness_menu, main_menu, pose_post_actions
 from ..states import Fitness
-from ..utils import download_best_photo_bytes
+from ..utils import download_best_photo_bytes, to_data_url
 from ..services.pose import overlay_pose
 from ..services.vision import analyze_calories
+from ..services.text_gpt import generate_workout_tips, generate_week_plan, diet_from_photo_or_text
 
 router = Router()
 
@@ -19,21 +20,47 @@ async def fitness_entry(message: Message):
 @router.message(F.text == "📸 Танани анализ қилиш (расм орқали)")
 async def fitness_pose_request(message: Message, state):
     await state.set_state(Fitness.waiting_pose_image)
-    await message.answer("Илтимос, тана позаси акс этган расм юборинг.")
+    await message.answer(
+        "Муҳим эслатма: Танангизни умумий таҳлил қилиш учун, илтимос, тўлиқ гавдангиз акс этган расмни юборинг (спорт кийимида бўлганингиз маъқул).\n"
+        "Махфийлик кафолати: Сиз юборган расм фақат бир марталик таҳлил учун ишлатилади ва тизимда сақланмайди. Натижалар тиббий ташхис эмас.")
 
 
 @router.message(Fitness.waiting_pose_image, F.photo)
 async def fitness_pose_handle(message: Message, state):
     image_bytes = await download_best_photo_bytes(message.bot, message)
+    await message.answer("⏳ Расм қабул қилинди. Таҳлил қилинмоқда, илтимос, бироз кутинг...")
     out_bytes = overlay_pose(image_bytes)
-    await message.answer_photo(photo=out_bytes, caption="Скелет чизилди.", reply_markup=pose_post_actions())
+    analysis = (
+        "Умумий таҳлил натижалари:\n"
+        "Қомат ҳолати: Елкалар бироз олдинга етилиши мумкин.\n"
+        "Тахминий тана тури: Қўшимча машқ ва ovqatlanish bilan yaxshilanishi mumkin."
+    )
+    await message.answer_photo(photo=out_bytes, caption=analysis, reply_markup=pose_post_actions())
     await state.clear()
 
 
 @router.message(F.text == "🍛 Таом калорияси ва парҳез")
 async def fitness_food(message: Message, state):
-    await message.answer("Илтимос, парҳезга доир таом расмини юборинг.")
-    await state.set_state(Fitness.waiting_pose_image)  # reuse for photo
+    await message.answer("Таом расмини юборинг ёки таомни матнда ёзинг (масалан: 'палов 1 порция').")
+    await state.set_state(Fitness.waiting_diet_input)
+
+
+@router.message(Fitness.waiting_diet_input, F.photo)
+async def fitness_diet_photo(message: Message, state):
+    image_bytes = await download_best_photo_bytes(message.bot, message)
+    await message.answer("⏳ Расм қабул қилинди. Таҳлил қилинмоқда...")
+    hint = analyze_calories(to_data_url(image_bytes))
+    diet = diet_from_photo_or_text(hint)
+    await message.answer(f"{hint}\n\nПарҳез бўйича маслаҳат:\n{diet}")
+    await state.clear()
+
+
+@router.message(Fitness.waiting_diet_input, F.text)
+async def fitness_diet_text(message: Message, state):
+    hint = message.text or ""
+    diet = diet_from_photo_or_text(hint)
+    await message.answer(f"Таҳлил: {hint}\n\nПарҳез бўйича маслаҳат:\n{diet}")
+    await state.clear()
 
 
 @router.message(F.text == "📏 BMI / вазн / қад ҳисоблаш")
@@ -76,14 +103,17 @@ async def fitness_workout(message: Message, state):
 
 @router.message(Fitness.waiting_workout_prefs)
 async def fitness_workout_prefs(message: Message, state):
-    goal = message.text or ""
-    # Simple templated suggestion (no network call)
-    reply = (
-        f"Мақсад: {goal}\n"
-        "Ҳафтасига 3-4 кун. Комплекс машқлар: squats, push-ups, rows, planks.\n"
-        "Кардио: 20-30 дақиқа – yugurish/velo.\n"
-        "Қувват машқларида progressive overload. Уйқу 7-8 соат."
-    )
+    await state.update_data(goal=message.text or "")
+    await state.set_state(Fitness.waiting_workout_place)
+    await message.answer("Қаерда машқ қиласиз? (уйда/зал)")
+
+
+@router.message(Fitness.waiting_workout_place)
+async def fitness_workout_place(message: Message, state):
+    data = await state.get_data()
+    goal = data.get("goal", "")
+    place = message.text or ""
+    reply = generate_workout_tips(goal, place)
     await message.answer(reply)
     await state.clear()
 
@@ -97,10 +127,7 @@ async def fitness_plan(message: Message, state):
 @router.message(Fitness.waiting_plan_details)
 async def fitness_plan_details(message: Message, state):
     details = message.text or ""
-    plan = (
-        "1-кун: Ko'krak + Triceps, 2-кун: Orqa + Biceps, 3-кун: Dam, 4-кун: Oyoq + Yelka.\n"
-        "Har mashq 3-4 set, 8-12 takror. Yakunda 15-20 daqiqa kardio."
-    )
+    plan = generate_week_plan(details)
     await message.answer(f"Сизнинг киритганингиз: {details}\n\nТаклиф этилган режа:\n{plan}")
     await state.clear()
 

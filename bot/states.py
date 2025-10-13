@@ -7,7 +7,9 @@ class PhotoServices(StatesGroup):
 
 class Fitness(StatesGroup):
     waiting_pose_image = State()
+    waiting_diet_input = State()
     waiting_bmi_height = State()
     waiting_bmi_weight = State()
     waiting_workout_prefs = State()
+    waiting_workout_place = State()
     waiting_plan_details = State()
