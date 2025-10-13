@@ -3,6 +3,7 @@ from aiogram.types import Message, CallbackQuery
 from aiogram.filters import Text
 
 from ..keyboards import photo_services_menu, calories_post_actions, recipe_post_actions, ocr_post_actions, product_post_actions, main_menu
+from ..monetization import ensure_user_and_gate
 from ..states import PhotoServices
 from ..utils import download_best_photo_bytes, to_data_url
 from ..services.vision import analyze_calories, identify_recipe, identify_product
@@ -16,12 +17,16 @@ router = Router()
 # Entry point to photo services
 @router.message(F.text == "📷 Расм орқали хизматлар")
 async def photo_menu(message: Message):
+    if not await ensure_user_and_gate(message, consume=False):
+        return
     await message.answer("Хизмат турини танланг:", reply_markup=photo_services_menu)
 
 
 # Calories
 @router.message(F.text == "🍔 Калория аниқлаш")
 async def calories_entry(message: Message, state):
+    if not await ensure_user_and_gate(message):
+        return
     await state.set_state(PhotoServices.waiting_image)
     await state.update_data(mode="calories")
     await message.answer(
@@ -31,6 +36,8 @@ async def calories_entry(message: Message, state):
 
 @router.message(PhotoServices.waiting_image, F.photo)
 async def handle_waiting_image(message: Message, state):
+    if not await ensure_user_and_gate(message):
+        return
     data = await state.get_data()
     mode = data.get("mode")
     image_bytes = await download_best_photo_bytes(message.bot, message)
@@ -67,6 +74,8 @@ async def handle_waiting_image(message: Message, state):
 # Recipe
 @router.message(F.text == "🍽 Таомни таниш + рецепт бериш")
 async def recipe_entry(message: Message, state):
+    if not await ensure_user_and_gate(message):
+        return
     await state.set_state(PhotoServices.waiting_image)
     await state.update_data(mode="recipe")
     await message.answer("Таом расмини юборинг.")
@@ -75,6 +84,8 @@ async def recipe_entry(message: Message, state):
 # OCR
 @router.message(F.text == "🧾 Матнни OCR орқали текстга айлантириш")
 async def ocr_entry(message: Message, state):
+    if not await ensure_user_and_gate(message):
+        return
     await state.set_state(PhotoServices.waiting_image)
     await state.update_data(mode="ocr")
     await message.answer("Матнли расмни юборинг. Масалан: ҳужжат, қоғоз, экран скриншоти ва ҳ.к.")
@@ -83,6 +94,8 @@ async def ocr_entry(message: Message, state):
 # Product
 @router.message(F.text == "🛍 Объект/товарни таниш")
 async def product_entry(message: Message, state):
+    if not await ensure_user_and_gate(message):
+        return
     await state.set_state(PhotoServices.waiting_image)
     await state.update_data(mode="product")
     await message.answer("Илтимос, объект ёки товар расмини юбортинг.")
