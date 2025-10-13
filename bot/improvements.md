@@ -1,0 +1,29 @@
+# Key improvements to consider
+
+- Rate limits and abuse protection
+  - Per-user throttling on photo-heavy endpoints
+  - Daily quota and admin override
+- Caching & deduplication
+  - Hash image bytes to avoid re-calling Vision for the same content
+  - Store last N results per user with timestamps
+- Structured outputs
+  - Ask models to return JSON, parse and render nicely
+  - Persist entities (dish, calories, OCR blocks) for statistics
+- Admin & analytics
+  - Admin commands: /stats, /top, /users
+  - Basic Prometheus metrics via exporter or logs
+- Cost controls
+  - Compress images; downscale to 1024px max side
+  - Shorter prompts; cap max_tokens per feature
+- Reliability
+  - Timeout/circuit breaker for all network calls
+  - Retry with backoff; clear error messages in Uzbek
+- Security & privacy
+  - Explicit user consent for storing data
+  - Auto-delete files after sending unless opted in
+- UX polish
+  - Typing indicators; progress messages
+  - Back buttons on every step; consistent labels
+- Deployment
+  - Dockerfile and Procfile for container & PaaS
+  - Webhook mode with HTTPS reverse proxy
