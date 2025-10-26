@@ -1,6 +1,6 @@
 import numpy as np
-import cv2
-import mediapipe as mp
+# import cv2
+# import mediapipe as mp
 from io import BytesIO
 
 mp_pose = mp.solutions.pose
