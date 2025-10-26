@@ -1,6 +1,6 @@
 from aiogram import Router, F
-from aiogram.types import Message, CallbackQuery
-from aiogram.filters import Text
+from aiogram.types import Message, CallbackQuery, BufferedInputFile
+from aiogram import F
 
 from ..keyboards import fitness_menu, main_menu, pose_post_actions
 from ..monetization import ensure_user_and_gate
@@ -37,12 +37,14 @@ async def fitness_pose_handle(message: Message, state):
     image_bytes = await download_best_photo_bytes(message.bot, message)
     await message.answer("⏳ Расм қабул қилинди. Таҳлил қилинмоқда, илтимос, бироз кутинг...")
     out_bytes = overlay_pose(image_bytes)
+    # ✅ Shu yerda to‘g‘rilaymiz:
+    photo_file = BufferedInputFile(out_bytes, filename="pose_result.jpg")
     analysis = (
         "Умумий таҳлил натижалари:\n"
         "Қомат ҳолати: Елкалар бироз олдинга етилиши мумкин.\n"
         "Тахминий тана тури: Қўшимча машқ ва ovqatlanish bilan yaxshilanishi mumkin."
     )
-    await message.answer_photo(photo=out_bytes, caption=analysis, reply_markup=pose_post_actions())
+    await message.answer_photo(photo=photo_file, caption=analysis, reply_markup=pose_post_actions())
     await state.clear()
 
 
@@ -167,14 +169,14 @@ async def back_to_main(message: Message, state):
     await message.answer("Асосий меню:", reply_markup=main_menu)
 
 
-@router.callback_query(Text("pose_again"))
+@router.callback_query(F.data == "pose_again")
 async def pose_again(cb: CallbackQuery, state):
     await cb.answer()
     await state.set_state(Fitness.waiting_pose_image)
     await cb.message.answer("Яна расм юборинг.")
 
 
-@router.callback_query(Text("back_fitness_menu"))
+@router.callback_query(F.data == "back_fitness_menu")
 async def back_fitness_menu(cb: CallbackQuery, state):
     await cb.answer()
     await state.clear()
