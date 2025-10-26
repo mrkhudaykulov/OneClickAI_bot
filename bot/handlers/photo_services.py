@@ -1,6 +1,6 @@
 from aiogram import Router, F
-from aiogram.types import Message, CallbackQuery
-from aiogram.filters import Text
+from aiogram.types import Message, CallbackQuery, BufferedInputFile
+from aiogram import F
 
 from ..keyboards import photo_services_menu, calories_post_actions, recipe_post_actions, ocr_post_actions, product_post_actions, main_menu
 from ..monetization import ensure_user_and_gate
@@ -109,7 +109,7 @@ async def back_to_main(message: Message, state):
 
 
 # Inline callbacks for calories
-@router.callback_query(Text("calories_again"))
+@router.callback_query(F.data == "calories_again")
 async def calories_again(cb: CallbackQuery, state):
     await cb.answer()
     await state.set_state(PhotoServices.waiting_image)
@@ -117,7 +117,7 @@ async def calories_again(cb: CallbackQuery, state):
     await cb.message.answer("Яна таом расмини юборинг.")
 
 
-@router.callback_query(Text("calories_more"))
+@router.callback_query(F.data == "calories_more")
 async def calories_more(cb: CallbackQuery, state):
     await cb.answer()
     data = await state.get_data()
@@ -126,7 +126,7 @@ async def calories_more(cb: CallbackQuery, state):
 
 
 # Inline callbacks for recipe
-@router.callback_query(Text("recipe_again"))
+@router.callback_query(F.data == "recipe_again")
 async def recipe_again(cb: CallbackQuery, state):
     await cb.answer()
     await state.set_state(PhotoServices.waiting_image)
@@ -134,7 +134,7 @@ async def recipe_again(cb: CallbackQuery, state):
     await cb.message.answer("Бошқа таом расмини юборинг.")
 
 
-@router.callback_query(Text("recipe_check_calories"))
+@router.callback_query(F.data == "recipe_check_calories")
 async def recipe_check_calories(cb: CallbackQuery, state):
     await cb.answer()
     await state.set_state(PhotoServices.waiting_image)
@@ -143,7 +143,7 @@ async def recipe_check_calories(cb: CallbackQuery, state):
 
 
 # Inline callbacks for OCR
-@router.callback_query(Text("ocr_make_files"))
+@router.callback_query(F.data == "ocr_make_files")
 async def ocr_make_files(cb: CallbackQuery, state):
     await cb.answer()
     data = await state.get_data()
@@ -157,14 +157,14 @@ async def ocr_make_files(cb: CallbackQuery, state):
     await cb.message.answer_document(document=("ocr.docx", docx_bytes))
 
 
-@router.callback_query(Text("ocr_translate"))
+@router.callback_query(F.data == "ocr_translate")
 async def ocr_translate(cb: CallbackQuery, state):
     await cb.answer()
     await state.set_state(PhotoServices.waiting_translation_lang)
     await cb.message.answer("Қайси тилга таржима қиламиз? Масалан: EN, RU, UZ-LATIN")
 
 
-@router.callback_query(Text("ocr_edit"))
+@router.callback_query(F.data == "ocr_edit")
 async def ocr_edit(cb: CallbackQuery, state):
     await cb.answer()
     await cb.message.answer("Янги таҳрирланган матнни юборинг.")
@@ -193,7 +193,7 @@ async def ocr_receive_lang(message: Message, state):
 
 
 # Back inline to menu
-@router.callback_query(Text("back_photo_menu"))
+@router.callback_query(F.data == "back_photo_menu")
 async def back_photo_menu(cb: CallbackQuery, state):
     await cb.answer()
     await state.clear()
