@@ -45,7 +45,8 @@ async def fitness_pose_handle(message: Message, state):
     # Rasmni URL shakliga o'tkazish kerak (Vision API uchun)
     # Agar Vision API'ga faylni o'tkazish usuli mavjud bo'lsa:
     # image_data = to_data_url(image_bytes) 
-    
+    data_url = to_data_url(image_bytes)
+    await message.answer("⏳ Расм қабул қилинди. Тана таҳлили юборилмоқда...")
     # Telegram'dagi rasmni URL orqali olish (Vision API uchun kerak)
     # Bu funksiya sizning Vision Service'ingizda bo'lishi kerak!
     
@@ -57,15 +58,32 @@ async def fitness_pose_handle(message: Message, state):
     # Hozircha, chunki bizda Vision API'ni to'g'ridan-to'g'ri Telegram rasmini yuklash usuli aniq emas,
     # o'rniga oldingi Javobdagi demo matnni qo'yamiz:
     
-    analysis = (
-        "💪 **Фитнес-Таҳлил (Демо):**\n"
-        "Тана analiz qilindi. AI natijalari quyida:\n"
-        "1. Taxminiy yog' miqdori: 22% (O'rta).\n"
-        "2. Maslahat: Oyoq mashqlarini ko'paytiring.\n"
-        "3. Reja: Haftada 3 kun kardio."
+   # 2. AI Vision API Чақируви
+    prompt = (
+        "Фитнес мақсадлари учун танани таҳлил қил. Фойдаланувчининг бўйи ва вазнини ҳозирча ҳисобга олмайман. "
+        "Натижани қуйидагиларни ўз ичига олган ҳолда ўзбек тилида беринг: 1. Тахминий тана тури (Эктоморф, Мезоморф, Эндоморф). "
+        "2. Ёғ фоизи ҳақида умумий тавсия. 3. Кунлик 3 та асосий машқ тавсияси."
     )
+    
+    try:
+        # Vision API'ни чақириш (Vision API'нинг URL'ни қабул қилишини тахмин қиламиз)
+        analysis_result = await get_image_analysis_response(data_url, prompt) 
+        
+    except Exception as e:
+        # API чақирувида хато бўлса
+        logging.error(f"Fitness Vision API Error: {e}")
+        analysis_result = "Афсуски, таҳлил жараёнида техник хатолик юз берди. Илтимос, яна бир бор уриниб кўринг."
 
-    await message.answer(analysis, reply_markup=pose_post_actions())
+    # 3. Натижани юбориш
+    # (overlay_pose'дан фарқли ўлароқ, ҳозирча расм қайтарилмайди, фақат матн)
+    
+    final_caption = (
+        f"**💪 Фитнес Таҳлили Натижаси:**\n\n"
+        f"{analysis_result}\n\n"
+        f"⚠️ Эслатма: Бу маълумотлар AI таҳлили асосида берилган ва тиббий маслаҳат ўрнини босмайди."
+    )
+    
+    await message.answer(final_caption, reply_markup=pose_post_actions(), parse_mode='Markdown')
     await state.clear()
     
    
