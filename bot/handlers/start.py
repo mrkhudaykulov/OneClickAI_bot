@@ -19,7 +19,7 @@ async def start(message: Message) -> None:
         last_name=message.from_user.last_name,
     )
     await message.answer(
-        "Салом! Мен ИИ ёрдамчиман. Қуйидаги менюлардан танланг:",
+        "Салом! Мен OneClickAI ёрдамчиман. Қуйидаги менюлардан танланг:",
         reply_markup=main_menu,
     )
     # If /start used inside a group where the bot was just added, try grant bonus
