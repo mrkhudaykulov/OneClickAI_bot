@@ -1,6 +1,11 @@
 from typing import Optional
 from .openai_client import vision_chat
 from ..services.vision import get_image_analysis_response, analyze_calories, identify_recipe, identify_product
+
+from openai import OpenAI
+from ..config import settings # API kalitini olish uchun
+import logging
+
 SYSTEM_CALORIES = (
     "Siz ovqat rasmlaridan taom nomi va porsiya uchun taxminiy kaloriya chiqaring. "
     "Natijani qisqa, punktli va o'zbek tilida bering. Eng muhim: taom (taxminan), kaloriya (kcal, 1 porsiya), 2-3 maslahat."
@@ -17,6 +22,28 @@ SYSTEM_PRODUCT = (
 SYSTEM_GENERAL = (
     "Siz yordamchi AI. O'zbek tilida qisqa va tushunarli javob bering."
 )
+
+
+logger = logging.getLogger(__name__)
+OPENAI_CLIENT = OpenAI(api_key=settings.openai_api_key) # settings.openai_api_key mavjud deb faraz qilamiz
+
+async def get_image_analysis_response(image_url: str, prompt: str) -> str:
+    """OpenAI Vision API orqali rasmni tahlil qilish (URL orqali)"""
+    try:
+        response = OPENAI_CLIENT.chat.completions.create(
+            model="gpt-4-vision-preview", # Yoki boshqa vision-enabled model
+            messages=[
+                {"role": "user", "content": [
+                    {"type": "text", "text": prompt},
+                    {"type": "image_url", "image_url": {"url": image_url}},
+                ]}
+            ],
+            max_tokens=500,
+        )
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        logger.error(f"Vision API Error: {e}")
+        return "Rasm tahlilida texnik xato yuz berdi."
 
 
 def analyze_calories(image_data_url: str) -> str:
