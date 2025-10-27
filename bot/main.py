@@ -10,7 +10,7 @@ from .config import settings
 from .db import init_db, set_setting
 from .handlers.start import router as start_router
 from .handlers.photo_services import router as photo_router
-# from .handlers.fitness import router as fitness_router
+from .handlers.fitness import router as fitness_router
 from .handlers_admin import router as admin_router
 from .handlers_group_events import router as group_router
 
