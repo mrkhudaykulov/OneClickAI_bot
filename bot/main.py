@@ -31,7 +31,7 @@ async def main() -> None:
 
     dp.include_router(start_router)
     dp.include_router(photo_router)
-#    dp.include_router(fitness_router)
+    dp.include_router(fitness_router)
     dp.include_router(admin_router)
     dp.include_router(group_router)
 
