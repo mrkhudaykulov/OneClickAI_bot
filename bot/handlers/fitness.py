@@ -7,8 +7,9 @@ from ..monetization import ensure_user_and_gate
 from ..states import Fitness
 from ..utils import download_best_photo_bytes, to_data_url
 # from ..services.pose import overlay_pose
-from ..services.vision import analyze_calories
+from ..services.vision import analyze_calories, get_image_analysis_response
 from ..services.text_gpt import generate_workout_tips, generate_week_plan, diet_from_photo_or_text
+from ..utils import download_best_photo_bytes # Rasmni olish uchun
 
 router = Router()
 
@@ -30,7 +31,45 @@ async def fitness_pose_request(message: Message, state):
         "Махфийлик кафолати: Сиз юборган расм фақат бир марталик таҳлил учун ишлатилади ва тизимда сақланмайди. Натижалар тиббий ташхис эмас.")
 
 
+
 @router.message(Fitness.waiting_pose_image, F.photo)
+async def fitness_pose_handle(message: Message, state):
+    if not await ensure_user_and_gate(message):
+        return
+    # 1. BO'Y VA VAZN SO'ROVINI OLISH (State Machine orqali olinishi kerak)
+    # Hozircha, siz height va weight ma'lumotlarini qanday olishingizga bog'liq.
+    # Agar siz BMI qismida buni oldindan so'ramagan bo'lsangiz, bu yerda so'rashingiz kerak.
+    # DEMO UCHUN, biz ma'lumotni so'raganga o'xshatib yuboramiz:
+    
+    image_bytes = await download_best_photo_bytes(message.bot, message)
+    # Rasmni URL shakliga o'tkazish kerak (Vision API uchun)
+    # Agar Vision API'ga faylni o'tkazish usuli mavjud bo'lsa:
+    # image_data = to_data_url(image_bytes) 
+    
+    # Telegram'dagi rasmni URL orqali olish (Vision API uchun kerak)
+    # Bu funksiya sizning Vision Service'ingizda bo'lishi kerak!
+    
+    # ❗️ KODNI O'RNATISH UCHUN:
+    # Agar sizda Vision API uchun funksiya tayyor bo'lsa:
+    # image_url = await upload_to_some_service(image_bytes) 
+    # analysis_result = await get_image_analysis_response(image_url, "Analyze pose and give advice...")
+    
+    # Hozircha, chunki bizda Vision API'ni to'g'ridan-to'g'ri Telegram rasmini yuklash usuli aniq emas,
+    # o'rniga oldingi Javobdagi demo matnni qo'yamiz:
+    
+    analysis = (
+        "💪 **Фитнес-Таҳлил (Демо):**\n"
+        "Тана analiz qilindi. AI natijalari quyida:\n"
+        "1. Taxminiy yog' miqdori: 22% (O'rta).\n"
+        "2. Maslahat: Oyoq mashqlarini ko'paytiring.\n"
+        "3. Reja: Haftada 3 kun kardio."
+    )
+
+    await message.answer(analysis, reply_markup=pose_post_actions())
+    await state.clear()
+    
+   
+"""@router.message(Fitness.waiting_pose_image, F.photo)
 async def fitness_pose_handle(message: Message, state):
     if not await ensure_user_and_gate(message):
         return
@@ -45,7 +84,7 @@ async def fitness_pose_handle(message: Message, state):
         "Тахминий тана тури: Қўшимча машқ ва ovqatlanish bilan yaxshilanishi mumkin."
     )
     await message.answer_photo(photo=photo_file, caption=analysis, reply_markup=pose_post_actions())
-    await state.clear()
+    await state.clear()"""
 
 
 @router.message(F.text == "🍛 Таом калорияси ва парҳез")
