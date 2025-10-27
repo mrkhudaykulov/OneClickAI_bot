@@ -7,7 +7,7 @@ from ..monetization import ensure_user_and_gate
 from ..states import Fitness
 from ..utils import download_best_photo_bytes, to_data_url
 # from ..services.pose import overlay_pose
-from ..services.vision import analyze_calories, get_image_analysis_response
+from ..services.vision import analyze_calories, get_image_analysis_response, identify_recipe, identify_product
 from ..services.text_gpt import generate_workout_tips, generate_week_plan, diet_from_photo_or_text
 from ..utils import download_best_photo_bytes # Rasmni olish uchun
 
