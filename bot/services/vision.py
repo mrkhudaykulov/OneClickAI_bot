@@ -1,6 +1,5 @@
 from typing import Optional
 from .openai_client import vision_chat
-from ..services.vision import get_image_analysis_response, analyze_calories, identify_recipe, identify_product
 
 from openai import OpenAI
 from ..config import settings # API kalitini olish uchun
