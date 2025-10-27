@@ -70,7 +70,8 @@ async def broadcast_users(message: Message):
         return
     parts = (message.text or "").split(maxsplit=1)
     if len(parts) < 2:
-        await message.answer("Фойдаланувчиларга юбориш учун матн киритинг: /broadcast_users <матн>")
+        await message.answer("Фойдаланувчиларга юбориш учун матн киритинг: /broadcast_users <матн>", 
+                             parse_mode=None)
         return
     text = parts[1]
 
@@ -100,7 +101,8 @@ async def broadcast_groups(message: Message):
         return
     parts = (message.text or "").split(maxsplit=1)
     if len(parts) < 2:
-        await message.answer("Гуруҳларга юбориш учун матн киритинг: /broadcast_groups <матн>")
+        await message.answer("Гуруҳларга юбориш учун матн киритинг: /broadcast_groups <матн>", 
+                             parse_mode=None)
         return
     text = parts[1]
 
