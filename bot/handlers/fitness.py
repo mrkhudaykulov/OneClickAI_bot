@@ -65,28 +65,20 @@ async def fitness_pose_handle(message: Message, state):
         "2. Ёғ фоизи ҳақида умумий тавсия. 3. Кунлик 3 та асосий машқ тавсияси."
     )
     
-    try:
-        # Vision API'ни чақириш (Vision API'нинг URL'ни қабул қилишини тахмин қиламиз)
-        analysis_result = await get_image_analysis_response(data_url, prompt) 
-        
-    except Exception as e:
-        # API чақирувида хато бўлса
-        logging.error(f"Fitness Vision API Error: {e}")
-        analysis_result = "Афсуски, таҳлил жараёнида техник хатолик юз берди. Илтимос, яна бир бор уриниб кўринг."
-
-    # 3. Натижани юбориш
-    # (overlay_pose'дан фарқли ўлароқ, ҳозирча расм қайтарилмайди, фақат матн)
+   # 2. ASYNC Vision API chaqiruvi
+    analysis_result = await get_image_analysis_response(data_url, prompt) 
     
+    # 3. Natijani qaytarish
     final_caption = (
         f"**💪 Фитнес Таҳлили Натижаси:**\n\n"
         f"{analysis_result}\n\n"
         f"⚠️ Эслатма: Бу маълумотлар AI таҳлили асосида берилган ва тиббий маслаҳат ўрнини босмайди."
     )
     
+    # oldingi overlay_pose o'rniga natijani yuboramiz
     await message.answer(final_caption, reply_markup=pose_post_actions(), parse_mode='Markdown')
     await state.clear()
     
-   
 """@router.message(Fitness.waiting_pose_image, F.photo)
 async def fitness_pose_handle(message: Message, state):
     if not await ensure_user_and_gate(message):
